@@ -1,6 +1,6 @@
 # Crochet & Origami Content Platform
 
-A community platform for crochet and origami enthusiasts. Users browse and publish content, and authenticated users can request custom work from Sellers via the commission flow.
+A community platform for crochet and origami enthusiasts. Users browse and publish content in two sections — Crochet and Origami — with role-based access controlling who can create and manage posts. A commission flow (allowing users to request custom work from Sellers) is planned for v2 and is not implemented in v1.
 
 ## Language
 
@@ -22,6 +22,10 @@ _Avoid_: Subscriber, paid user
 An unauthenticated visitor. Can browse the feed and read Posts but cannot submit Commission requests.
 _Avoid_: Anonymous user, visitor
 
+**Admin**:
+The highest-privilege role on the platform. An Admin can view all content regardless of publish state, assign or revoke any role (including Seller and Admin itself), and manage all user accounts. The role hierarchy ends here — no role above Admin exists or should be introduced.
+_Avoid_: Superuser, root, owner, superadmin
+
 ### Content
 
 **Post**:
@@ -35,6 +39,12 @@ _Avoid_: Category, tag, topic, channel
 **Feed**:
 The paginated, filterable list of published Posts visible to all users.
 _Avoid_: Timeline, stream, home page
+
+### Account
+
+**Profile**:
+The authenticated User's view of their own account data — display name, avatar, and locale preference. In v1, Profile is not a separate data concept; it reads directly from the User record. Richer public-facing content (bio, social links, post history) is deferred to v2.
+_Avoid_: Account page, settings page, dashboard
 
 ### Saved Content
 

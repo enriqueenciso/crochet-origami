@@ -26,8 +26,8 @@ Two content sections exist at launch: **Crochet** and **Origami**. The architect
 4. As a guest, I want to register for an account, so that I can interact with the platform.
 5. As a guest, I want to log in with my email and password, so that I can access my account.
 6. As a guest, I want to see the platform in my preferred language (English or Spanish), so that I can use it comfortably.
-7. _(Lower priority)_ As a guest, I want to register or log in using my Google account, so that I can get started without creating a password.
-8. _(Lower priority)_ As a guest, I want to register or log in using my GitHub account, so that I have an alternative social login option.
+7. _(v2)_ As a guest, I want to register or log in using my Google account, so that I can get started without creating a password.
+8. _(v2)_ As a guest, I want to register or log in using my GitHub account, so that I have an alternative social login option.
 
 ### Regular User
 
@@ -36,10 +36,10 @@ Two content sections exist at launch: **Crochet** and **Origami**. The architect
 3. As a regular user, I want to save posts to a personal collection, so that I can revisit content I like.
 4. As a regular user, I want to change my account language preference, so that the UI updates to my selected locale.
 5. As a regular user, I want to log out of my account, so that my session is ended securely.
-6. _(Lower priority)_ As a regular user, I want to link a social account (Google or GitHub) to my existing profile, so that I can log in with either method.
+6. _(v2)_ As a regular user, I want to link a social account (Google or GitHub) to my existing profile, so that I can log in with either method.
 7. _(Lower priority)_ As a regular user, I want to comment on a post, so that I can share my thoughts or ask questions.
-8. _(Lower priority)_ As a regular user, I want to see new comments appear in real time without refreshing the page, so that conversations feel live.
-9. _(Lower priority)_ As a regular user, I want to receive a real-time notification when someone replies to my comment, so that I can follow the conversation.
+8. _(v1 stretch goal)_ As a regular user, I want to see new comments appear in real time without refreshing the page, so that conversations feel live.
+9. _(v1 stretch goal)_ As a regular user, I want to receive a real-time notification when someone replies to my comment, so that I can follow the conversation.
 
 ### Premium User
 
@@ -58,13 +58,11 @@ Two content sections exist at launch: **Crochet** and **Origami**. The architect
 
 ### System Admin
 
-1. As a system admin, I want to view a list of all registered users, so that I can manage the user base.
-2. As a system admin, I want to assign or change user roles (Regular, Premium, Seller, Admin), so that I can control access levels.
-3. As a system admin, I want to deactivate a user account, so that I can remove bad actors without permanently deleting their data.
-4. As a system admin, I want to view all posts regardless of publish status, so that I can moderate content.
-5. As a system admin, I want to delete any post, so that I can enforce community guidelines.
-6. As a system admin, I want to manage content sections (view, potentially add new ones), so that the platform can expand in the future.
-7. As a system admin, I want to view platform-level metrics (total users, posts), so that I can monitor platform health.
+
+1. As a system admin, I want to assign or change user roles (Regular, Premium, Seller, Admin), so that I can control access levels.
+2. As a system admin, I want to view all posts regardless of publish status, so that I can moderate content.
+
+> _(Deferred to v2)_ View all registered users, deactivate accounts, delete any post, manage sections, platform metrics.
 
 ## Implementation Decisions
 
@@ -76,7 +74,9 @@ Two content sections exist at launch: **Crochet** and **Origami**. The architect
 - **Monorepo layout**: `/client` (Vite SPA), `/server` (Express API), `/shared` (Zod schemas and inferred TypeScript types used by both). Run together locally via `concurrently`.
 - **Routing**: React Router v6 — `BrowserRouter`, nested routes, layout routes, protected routes via wrapper components
 - **Global State**: Redux Toolkit — store slices for `auth`, `feed`; async operations via `createAsyncThunk`
-- **Feed pagination**: cursor-based — feed API accepts an optional `after` cursor (post ID) and returns `{ posts, nextCursor, hasMore }`. Prisma's `cursor` + `take` + `skip: 1` implements this. Chosen over offset pagination because offsets shift when new posts are inserted, producing duplicates or gaps.
+- **Feed pagination**: two-phase approach for learning purposes.
+  - **Phase 1 (mocked data)**: offset-based pagination — `?page=1&limit=10`, simple `skip` + `take` in Prisma. Used when the Feed is first built against mocked/seeded data. Known limitation: offsets shift when new posts are inserted, producing duplicates or gaps.
+  - **Phase 2 (real data)**: cursor-based pagination — feed API accepts an optional `after` cursor (post ID) and returns `{ posts, nextCursor, hasMore }`. Prisma's `cursor` + `take` + `skip: 1` implements this. Introduced as a dedicated refactor once the Feed is working and tested, replacing offset pagination entirely.
 - **Validation**: Zod — schemas defined in `/shared`, used on the server for request validation and on the client for form validation; API response types inferred from the same schemas.
 - **ORM**: Prisma — declarative schema, type-safe queries, migration system (lives in `/server`)
 - **Database (dev)**: SQLite via Prisma for local development speed
@@ -89,8 +89,8 @@ Two content sections exist at launch: **Crochet** and **Origami**. The architect
 - **Testing**: Vitest + React Testing Library
 - **Linting/Formatting**: ESLint + Prettier
 - **Git hooks**: Husky + lint-staged (lint and format on commit)
-- _(Lower priority)_ **OAuth providers**: Google and GitHub via Supabase Auth — plugs into the same auth system with no schema changes
-- _(Lower priority)_ **Real-time**: Supabase Realtime — Postgres Changes subscriptions for live comment feeds
+- _(v2)_ **OAuth providers**: Google and GitHub via Supabase Auth — plugs into the same auth system with no schema changes
+- _(v1 stretch goal)_ **Real-time**: Supabase Realtime — Postgres Changes subscriptions for live comment feeds. Studied last, after all other v1 foundations are solid. WebSockets may appear in CodeSignal assessments and are worth covering, but are not a priority.
 
 ### Architecture Decisions
 
@@ -107,6 +107,7 @@ Two content sections exist at launch: **Crochet** and **Origami**. The architect
   ├── auth   { id, displayName, avatarUrl, role, locale, status }
   └── feed   { posts, filters, nextCursor, hasMore, status }
   ```
+  The `feed` slice is introduced when Redux enters the learning order (after data fetching). The `auth` slice is added at the auth milestone — it cannot be meaningfully populated until Supabase is wired in.
 
 ### Role Permissions Matrix
 
@@ -160,7 +161,7 @@ A good test verifies **external behavior** — what a component renders and how 
 
 ## Further Notes
 
-- The project doubles as a **React learning vehicle**. Features are developed in increasing complexity order: routing → local state → global state (Redux) → data fetching → auth → i18n. Each GitHub issue will be preceded by a component diagram and guided walkthrough before implementation begins (via the `teach-react` skill, to be built).
+- The project doubles as a **React learning vehicle**. Features are developed in increasing complexity order: routing → local state → data fetching → global state (Redux) → auth → i18n. Testing (Vitest + React Testing Library) is not introduced on the first feature — the routing and layout shell is built without tests. Testing enters on the second feature (Feed with data fetching), where there is something meaningful to test and React fundamentals already feel familiar. Each GitHub issue will be preceded by a component diagram and guided walkthrough before implementation begins (via the `teach-react` skill, to be built).
 - **Seed script** is a first-class concern — it should produce a complete, realistic dataset: multiple users per role and posts in both sections (some published, some draft).
 - **i18n from day one** — all user-facing strings must go through `t()`. Hard-coded UI strings are treated as a bug.
 - The `teach-react` custom skill (to be created via `skill-creator`) will read a GitHub issue, produce a Mermaid component diagram, and outline the work plan before any code is written.
