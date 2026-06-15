@@ -1,9 +1,9 @@
-import i18next from 'i18next'
-import { initReactI18next } from 'react-i18next'
-import englishTranslations from './en.json'
+import i18next from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import englishTranslations from './en.json';
 
-const DEFAULT_LANGUAGE = 'en'
-const FALLBACK_LANGUAGE = 'en'
+const DEFAULT_LANGUAGE = 'en';
+const FALLBACK_LANGUAGE = 'en';
 
 i18next.use(initReactI18next).init({
   lng: DEFAULT_LANGUAGE,
@@ -16,4 +16,4 @@ i18next.use(initReactI18next).init({
   interpolation: {
     escapeValue: false,
   },
-})
+});
