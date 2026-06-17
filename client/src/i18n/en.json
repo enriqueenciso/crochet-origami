@@ -12,5 +12,12 @@
     "register": "Register",
     "profile": "Profile",
     "notFound": "Page Not Found"
+  },
+  "feed": {
+    "filter": {
+      "all": "All",
+      "crochet": "Crochet",
+      "origami": "Origami"
+    }
   }
 }
